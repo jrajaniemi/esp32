@@ -28,7 +28,7 @@ int light = 0;
 volatile int state;
 int lastState = 0;
 int stateCounter = 0;
-int counter = 0;
+int counter = 15;
 
 // Pin variables
 int ledPin = 2;
@@ -36,6 +36,7 @@ int photoresistorPin = 36;
 int pirPin = 27;
 
 // Create BME280 object 
+#define SEALEVELPRESSURE_HPA (1013.25)
 Adafruit_BME280 bme; 
 
 // send sensor 1 data method to Asksensor.com
@@ -119,6 +120,7 @@ void IRAM_ATTR ISRcallback() {
 }
 
 void setup() {
+  delay(500);
   // Open serial connect to speed 115200
   Serial.begin(115200);
 
@@ -137,7 +139,8 @@ void setup() {
     while (1)
       ;
   }
-
+  delay(100);
+  
   // Connect to Wifi access point (2 choices)
   Serial.print("Connecting to ");
   // connecting to the WiFi network
@@ -157,7 +160,7 @@ void loop()
 {
   // ISR status polling speed is 1 sec and weather sensors send data to network 50 times per day
   // so delay must been 1 hour 2 min 8 second. (3600 * 24) / 50 = 1728 sec.
-  if(counter >= 1728) {
+  if(counter >= 60) {
     // Calculate the lux from photoresistor 5516 
     int ADC = analogRead(photoresistorPin);       // read analog value from pin36
     float Vout = (ADC * 0.0008056640625);         // calculate the voltage
@@ -183,6 +186,12 @@ void loop()
       // Send weather data to network
       Serial.println("Send sensor 1 values");
       sendSensor1Values();
+
+      Serial.print(temperature); Serial.print(" ");
+      Serial.print(humidity); Serial.print(" ");
+      Serial.print(pressure); Serial.print(" ");
+      Serial.println(light);
+
     }
 
     // Close connection
@@ -197,6 +206,7 @@ void loop()
   Serial.print(":");
   Serial.println(lastState);
   */
+
 
   // If PIR-state cheange, send data to network
   if(state != lastState) {
